@@ -375,7 +375,6 @@ function Skills() {
     </section>
   );
 }
-
 function Projects() {
   const [selectedProject, setSelectedProject] = useState(null);
 
