@@ -117,6 +117,27 @@ function AnimCounter({ to, suffix = "" }) {
   return <span ref={ref}>{val}{suffix}</span>;
 }
 
+/* ─── RESUME DOWNLOAD ─── */
+async function downloadResume(setLoading) {
+  setLoading(true);
+  try {
+    const response = await fetch("/Rushabh-fullstack.pdf");
+    const blob = await response.blob();
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "Rushabh-Savaliya-Resume.pdf";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  } catch {
+    window.open("/Rushabh-fullstack.pdf", "_blank");
+  } finally {
+    setLoading(false);
+  }
+}
+
 /* ─── CURSOR GLOW ─── */
 function CursorGlow() {
   const [pos, setPos] = useState({ x: 0, y: 0 });
@@ -128,8 +149,10 @@ function CursorGlow() {
   return (
     <motion.div
       className="fixed pointer-events-none z-0"
-      style={{ width: 500, height: 500, borderRadius: "50%",
-        background: "radial-gradient(circle, rgba(139,92,246,0.12) 0%, transparent 70%)" }}
+      style={{
+        width: 500, height: 500, borderRadius: "50%",
+        background: "radial-gradient(circle, rgba(139,92,246,0.12) 0%, transparent 70%)"
+      }}
       animate={{ left: pos.x - 250, top: pos.y - 250 }}
       transition={{ type: "spring", stiffness: 80, damping: 20 }}
     />
@@ -141,8 +164,10 @@ function Orb({ color, size, top, left, delay = 0, opacity = 0.12 }) {
   return (
     <motion.div
       className="absolute rounded-full pointer-events-none"
-      style={{ width: size, height: size, top, left,
-        background: color, filter: "blur(80px)", opacity }}
+      style={{
+        width: size, height: size, top, left,
+        background: color, filter: "blur(80px)", opacity
+      }}
       animate={{ scale: [1, 1.2, 1], x: [0, 30, 0], y: [0, -20, 0] }}
       transition={{ duration: 10 + delay, repeat: Infinity, ease: "easeInOut", delay }}
     />
@@ -179,11 +204,10 @@ function Navbar() {
       initial={{ y: -80, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.6, ease: "easeOut" }}
-      className={`fixed top-0 w-full z-50 transition-all duration-500 ${
-        scrolled
-          ? "py-3 bg-[#0a0a16]/80 backdrop-blur-2xl border-b border-white/5"
-          : "py-5 bg-transparent"
-      }`}
+      className={`fixed top-0 w-full z-50 transition-all duration-500 ${scrolled
+        ? "py-3 bg-[#0a0a16]/80 backdrop-blur-2xl border-b border-white/5"
+        : "py-5 bg-transparent"
+        }`}
     >
       <div className="max-w-6xl mx-auto px-6 flex justify-between items-center">
         <motion.a
@@ -269,6 +293,7 @@ function Hero() {
   const y = useTransform(scrollY, [0, 600], [0, 180]);
   const opacity = useTransform(scrollY, [0, 400], [1, 0]);
   const role = useTypewriter(["Backend Architect", "AI Engineer", "Full Stack Developer", "System Designer"]);
+  const [downloading, setDownloading] = useState(false);
 
   return (
     <section className="relative min-h-screen flex flex-col justify-center items-center text-center overflow-hidden px-6">
@@ -336,28 +361,44 @@ function Hero() {
 
         {/* CTAs */}
         <motion.div
-          className="flex flex-col sm:flex-row gap-4 justify-center"
+          className="flex flex-col items-center gap-6"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.9 }}
         >
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <motion.button
+              className="group relative px-8 py-4 rounded-2xl bg-violet-600 text-white font-semibold text-lg overflow-hidden"
+              whileHover={{ scale: 1.04 }}
+              whileTap={{ scale: 0.97 }}
+              onClick={() => document.getElementById("projects").scrollIntoView({ behavior: "smooth" })}
+            >
+              <span className="absolute inset-0 bg-gradient-to-r from-violet-600 to-purple-600 opacity-0 group-hover:opacity-100 transition-opacity" />
+              <span className="relative flex items-center gap-2">View Projects <span className="group-hover:translate-x-1 transition-transform">→</span></span>
+            </motion.button>
+            <motion.a
+              href="mailto:rushabh1245@gmail.com"
+              className="px-8 py-4 rounded-2xl border border-white/15 text-slate-300 font-semibold text-lg hover:border-violet-400/50 hover:text-white transition-all"
+              whileHover={{ scale: 1.04 }}
+              whileTap={{ scale: 0.97 }}
+            >
+              Get In Touch
+            </motion.a>
+          </div>
           <motion.button
-            className="group relative px-8 py-4 rounded-2xl bg-violet-600 text-white font-semibold text-lg overflow-hidden"
-            whileHover={{ scale: 1.04 }}
-            whileTap={{ scale: 0.97 }}
-            onClick={() => document.getElementById("projects").scrollIntoView({ behavior: "smooth" })}
+            className="mono text-sm text-slate-500 hover:text-violet-300 underline-offset-4 hover:underline transition-all disabled:opacity-60 disabled:cursor-not-allowed flex items-center gap-2"
+            onClick={() => downloadResume(setDownloading)}
+            disabled={downloading}
           >
-            <span className="absolute inset-0 bg-gradient-to-r from-violet-600 to-purple-600 opacity-0 group-hover:opacity-100 transition-opacity" />
-            <span className="relative flex items-center gap-2">View Projects <span className="group-hover:translate-x-1 transition-transform">→</span></span>
+            {downloading ? (
+              <>
+                <span className="w-3.5 h-3.5 rounded-full border-2 border-slate-400 border-t-transparent animate-spin" />
+                Downloading...
+              </>
+            ) : (
+              <>Download Resume <span>↓</span></>
+            )}
           </motion.button>
-          <motion.a
-            href="mailto:rushabh1245@gmail.com"
-            className="px-8 py-4 rounded-2xl glass text-slate-200 font-semibold text-lg hover:bg-white/5 transition-all"
-            whileHover={{ scale: 1.04 }}
-            whileTap={{ scale: 0.97 }}
-          >
-            Get In Touch
-          </motion.a>
         </motion.div>
 
         {/* Scroll indicator */}
@@ -403,7 +444,7 @@ function About() {
 
   return (
     <section id="about" className="py-32 px-6 relative overflow-hidden">
-      <Orb color="#7c3aed" size={400} top="0" left="80%" delay={2} opacity={0.08} />
+      <Orb color="#f59e0b" size={400} top="0" left="80%" delay={2} opacity={0.08} />
 
       <div className="max-w-6xl mx-auto" ref={ref}>
         <motion.div
@@ -500,12 +541,12 @@ function Skills() {
     {
       label: "Databases",
       color: "cyan",
-      skills: ["MongoDB", "MySQL", "PostgreSQL", "Redis", "Pinecone Vector DB"],
+      skills: ["Supabase", "MongoDB", "MySQL", "PostgreSQL", "Redis", "Pinecone Vector DB"],
     },
     {
       label: "AI & Machine Learning",
       color: "pink",
-      skills: ["LangChain", "Anthropic Claude", "OpenAI GPT-4", "Vector Search", "RAG Systems"],
+      skills: ["LangChain", "Anthropic Claude", "Eleven Labs", "Deepgram", "Vapi", "OpenAI", "Vector Search", "RAG Systems"],
     },
     {
       label: "Frontend",
@@ -515,7 +556,7 @@ function Skills() {
     {
       label: "Integrations & Tools",
       color: "amber",
-      skills: ["Shopify API", "Stripe", "PayPal", "Braintree", "AWS S3", "AWS SQS", "Socket.io"],
+      skills: ["Shopify API", "Stripe", "Twilio", "PayPal", "Braintree", "AWS S3", "AWS SQS", "Socket.io"],
     },
   ];
 
@@ -529,7 +570,8 @@ function Skills() {
   };
 
   return (
-    <section id="skills" className="py-32 px-6 relative" style={{ background: "linear-gradient(180deg, #030712 0%, #060618 100%)" }}>
+    <section id="skills" className="py-32 px-6 relative overflow-hidden" style={{ background: "linear-gradient(180deg, #030712 0%, #060618 100%)" }}>
+      <Orb color="#14b8a6" size={450} top="10%" left="85%" delay={1} opacity={0.07} />
       <div className="max-w-6xl mx-auto" ref={ref}>
         <SectionLabel>02 — Technical Arsenal</SectionLabel>
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-4">
@@ -584,45 +626,105 @@ function Projects() {
 
   const projects = [
     {
+      title: "Dental AI Assistant",
+      subtitle: "AI-Powered Clinic Operations Platform for Dental Practices",
+      tags: ["Node.js", "Supabase", "VAPI", "ElevenLabs", "Deepgram", "Twilio", "Google Calendar", "Stripe", "Stedi", "Claude AI"],
+      accent: "#10b981",
+      accentSecondary: "#06b6d4",
+      size: "large",
+      images: ["/DentalAI/1.png", "/DentalAI/2.png", "/DentalAI/3.png", "/DentalAI/4.png"],
+      highlights: [
+        "VAPI-powered AI voice agent books, reschedules & cancels appointments live during patient calls — full autonomous scheduling cycle",
+        "Voice-driven periodontal charting: spoken exam findings converted into structured tooth-by-tooth chart data with AI summaries",
+        "End-to-end inventory system: multi-location stock, batch/serial tracking, purchase orders, transfers, shipments & supplier returns",
+        "Gmail integration auto-classifies incoming emails into appointment, referral, or general-action workflows",
+        "Practice availability engine with general & custom weekly hours, consumed by the scheduler, AI agent, and internal booking",
+        "Stripe-integrated subscriptions & prepaid credits, Stedi-integrated dental insurance claim submission, and a persistent Claude-powered in-app chatbot",
+      ],
+      details: {
+        overview: "Dental AI Assistant is a full-stack clinic operations platform that unifies appointment scheduling, patient communication, clinical documentation, referral processing, and dental-supply inventory into one system. It combines a role-based clinic dashboard with AI-assisted features — voice booking, email triage, and voice-to-chart documentation — so practices can run daily operations without juggling disconnected tools.",
+        challenges: [
+          "Letting an AI voice agent complete a full booking cycle (find doctor, check real availability, create/reschedule/cancel) without double-booking or violating practice hours",
+          "Converting free-form spoken periodontal exam findings into structured, tooth-level clinical data reliably",
+          "Classifying incoming Gmail messages into appointment vs. referral vs. general intent and routing them to the right workflow",
+          "Modeling a variant-based inventory system with per-location stock, batch/serial compliance tracking, and atomic reversals on order cancellation",
+          "Keeping a strict, non-skippable shipment status lifecycle in sync with automatic purchase-order and back-order fulfillment",
+          "Gating an entire feature set (inventory, voice-to-text, billing) per practice via subscription tier without duplicating routes",
+        ],
+        solutions: [
+          "Practice availability module (general + custom weekly hours) feeding a shared slot-finding service used by the public scheduler, internal booking, and the VAPI agent alike",
+          "VAPI + ElevenLabs (TTS) + Deepgram (STT) voice pipeline where the agent collects patient details, matches or creates the patient by phone number, and calls the same appointment-creation logic as manual bookings — including Google Calendar sync and confirmation email",
+          "Voice-to-chart pipeline for periodontal charting: recordings/transcripts are parsed into structured probing depth, recession, plaque, bleeding, mobility, and furcation entries plus an AI-generated summary",
+          "Gmail intent classifier that routes messages into appointment review, referral handling, or follow-up queues instead of a raw inbox",
+          "Inventory architecture built around products → variants → per-location `variant_inventory`, with dedicated batch and serial-number tables and cascade-safe delete logic",
+          "Linear, validated state machines for shipments (Open → Delivered), purchase/back orders (draft → fulfilled), and supplier returns (draft → completed), with auto-promotion rules (e.g., all shipments delivered ⇒ order fulfilled) and full inventory reversal on order cancellation",
+          "Feature-flag-driven access control gating entire route groups and navigation per practice, plus Stripe subscription/prepaid-credit billing with automatic redirect to pricing for unactivated practices",
+        ],
+        impact: [
+          "AI voice agent independently completes the entire appointment lifecycle — booking, rescheduling, and cancellation — cutting after-hours and overflow call pressure on front-desk staff",
+          "Periodontal charting time reduced through voice-driven capture that outputs structured, exportable chart history instead of manual entry",
+          "Referral and appointment-related emails are triaged automatically, shortening response time and reducing missed referral cases",
+          "Full dental-supply inventory lifecycle (products, suppliers, POs, transfers, shipments, returns) run through one traceable system with batch/serial-level compliance history",
+          "Electronic dental insurance claim submission via Stedi replaces manual paper-based filing with a tracked digital audit trail",
+          "Practice-level feature flags and Stripe billing let the same codebase serve clinics on different plans without forked deployments",
+        ],
+        techStack: {
+          ai: ["Claude AI (chatbot & scribe)", "ElevenLabs (TTS)", "Deepgram (STT)", "VAPI (Voice Agent)"],
+          backend: ["Node.js", "Express", "REST APIs", "Real-time/WebSocket events"],
+          database: ["Supabase (PostgreSQL)", "Supabase Auth", "Supabase Storage"],
+          communication: ["Twilio (Calls & SMS)", "Brevo (Email/SMTP)", "Gmail API"],
+          integrations: ["Google Calendar API", "Stripe (Billing)", "Stedi (Insurance Claims)", "Open Dental API (Data Sync)"],
+          features: ["Periodontal Charting", "Inventory & Batch/Serial Tracking", "Purchase/Back Orders", "Shipments & Supplier Returns", "Practice Availability Engine", "Embeddable Booking Widget"],
+        },
+      },
+    },
+    {
       title: "ForecastIQ",
-      subtitle: "AI-Driven E-Commerce Intelligence Platform",
-      tags: ["Node.js", "LangChain", "Anthropic", "Pinecone", "React", "Shopify API"],
+      subtitle: "Multi-Tenant Shopify App for AI-Powered Inventory Forecasting & Demand Planning",
+      tags: ["React", "Vite", "Ant Design", "Node.js", "MongoDB", "Shopify API", "Anthropic Claude", "Pinecone"],
       accent: "#8b5cf6",
       accentSecondary: "#06b6d4",
       size: "large",
       highlights: [
-        "Built AI-powered forecasting system predicting product demand 1-2 months ahead",
-        "Integrated real-time Shopify webhooks for order & inventory tracking",
-        "Dual AI chatbots: Admin analytics assistant & Customer support automation",
-        "Vector search using Pinecone for contextual AI understanding",
-        "Reduced manual support workload by 60% through intelligent automation",
+        "Dual-mode multi-tenant platform — Shopify-connected stores or fully standalone inventory management from one codebase",
+        "AI demand forecasting & baseline planning powered by Anthropic Claude + Pinecone vector search for context-aware recommendations",
+        "Full purchase-to-sale lifecycle: purchase/back orders with cron-driven auto-purchase, sales orders/quotes/invoices, and customer & supplier returns",
+        "Inventory operations suite spanning stock counts, transfers, adjustments, and batch/serial tracking across multiple store locations",
+        "Customer analytics (CLV, churn, repeat-purchase rate) plus dual AI chatbots for admin insights and store-side support",
+        "Dentist-specific tenant type adding sterilization test tracking and controlled substance reporting on top of the shared inventory core",
       ],
       details: {
-        overview: "ForecastIQ is a comprehensive AI-driven e-commerce intelligence platform designed to revolutionize inventory management and customer support through advanced ML and NLP.",
+        overview: "ForecastIQ is a multi-tenant Shopify app — with a standalone mode for sellers without a Shopify store — that unifies inventory forecasting, demand planning, purchasing, sales order management, and multi-location stock tracking behind AI-powered analytics. A 60+ model MongoDB backend mirrors a React + Ant Design frontend, with Claude-based forecasting, vector search, and chatbots layered on top of live Shopify order and inventory data.",
         challenges: [
-          "Accurately forecasting demand across varying seasonal trends and market conditions",
-          "Processing large volumes of real-time e-commerce data from multiple sources",
-          "Creating contextually aware AI chatbots that understand business-specific terminology",
-          "Ensuring seamless Shopify integration without disrupting live operations",
+          "Supporting both Shopify-connected and fully standalone inventory modes from a single multi-tenant codebase without diverging business logic",
+          "Keeping local product/order/inventory data in sync with Shopify via REST/GraphQL and webhooks in near real time",
+          "Forecasting demand accurately across 60+ interlinked domain models spanning purchasing, sales, and inventory operations",
+          "Gating AI token limits, ML training frequency, user slots, and storage per subscription tier without duplicating routes",
+          "Coordinating recurring automation — auto-purchase, stock alerts, AI training, expiry checks — via cron without schedule collisions",
+          "Extending the platform for a dentist vertical (sterilization tests, controlled substance reporting) without polluting the general retail flow",
         ],
         solutions: [
-          "LangChain + Claude AI for intelligent demand forecasting using historical data and seasonal patterns",
-          "Real-time data pipeline via Shopify webhooks for instant order and inventory capture",
-          "Pinecone vector database for semantic search and contextual AI recommendations",
-          "Dual-purpose chatbot: admin analytics insights + customer support automation",
+          "TenantId-scoped multi-tenancy with a `user-mode` header distinguishing Shopify vs. Standalone requests across all backend models",
+          "REST/GraphQL Shopify integration plus webhook-driven sync keeping products, orders, and inventory current between Shopify and MongoDB",
+          "Anthropic Claude SDK + Pinecone vector DB combination powering demand forecasting, baseline planning, and contextually aware admin/customer chatbots",
+          "Centralized cron scheduler (`backend/cron/cron.js`) coordinating auto-purchase, alerts, AI training, webhook sync, and expiry checks in one place",
+          "Tenant-type flag (`general` vs. `dentist`) that conditionally unlocks sterilization/controlled-substance modules on top of the shared inventory core",
+          "Mirrored FE/BE domain convention — route module, Mongoose model, service file, and page folder per domain — keeping 15+ domains consistent as the app scales",
         ],
         impact: [
-          "85% accuracy in demand forecasting, reducing overstock by 40%",
-          "10,000+ real-time events processed daily with <2s latency",
-          "60% of support queries resolved without human intervention",
-          "25% revenue increase from admin analytics insights",
+          "One codebase serves both Shopify-embedded merchants and standalone inventory users, avoiding a forked product",
+          "Purchase-to-sale operations (POs, back orders, sales orders/quotes/invoices, returns) fully digitized, with cron-driven auto-purchase reducing manual reordering",
+          "AI-driven demand forecasting and baseline planning give merchants forward-looking stock guidance instead of reactive restocking",
+          "Dual AI chatbots cut manual admin analytics lookups and reduce customer support workload",
+          "Subscription-gated AI/ML usage and storage limits support a scalable, tiered SaaS pricing model with free-trial onboarding",
+          "Dentist-specific compliance tracking (sterilization tests, controlled substances) extends the platform into a regulated vertical beyond general retail",
         ],
         techStack: {
-          frontend: ["React", "Redux", "Tailwind CSS", "Chart.js"],
-          backend: ["Node.js", "Express", "LangChain", "Anthropic Claude API"],
-          database: ["Pinecone Vector DB", "MongoDB"],
-          integrations: ["Shopify API", "Webhooks"],
-          deployment: ["AWS EC2", "Docker", "Nginx"],
+          frontend: ["React 18", "Vite", "Ant Design", "React Query", "React Router", "Axios", "i18next", "Recharts", "Shopify App Bridge"],
+          backend: ["Node.js (ES Modules)", "Express", "MongoDB + Mongoose", "JWT + bcrypt", "node-cron"],
+          ai: ["Anthropic Claude SDK", "Pinecone (Vector DB)"],
+          integrations: ["Shopify API (REST + GraphQL)", "Shopify Webhooks"],
+          storage: ["AWS S3 (Files/PDFs/Images)", "Brevo (Transactional Email)"],
         },
       },
     },
@@ -714,56 +816,6 @@ function Projects() {
       },
     },
     {
-      title: "Dental AI",
-      subtitle: "AI-Powered SaaS Platform for Dental Practice Automation",
-      tags: ["Node.js", "Supabase", "ElevenLabs", "Deepgram", "Vapi", "Twilio", "Brevo", "Google Calendar"],
-      accent: "#10b981",
-      accentSecondary: "#06b6d4",
-      size: "large",
-      highlights: [
-        "AI reads incoming emails and auto-detects appointment requests using NLP",
-        "Automatically books appointments synced to Google Calendar and in-app calendar",
-        "AI voice agent calls patients via Vapi — discusses issues, books appointments autonomously",
-        "ElevenLabs + Deepgram for human-like voice AI; Twilio for calls & SMS; Brevo for emails",
-        "Full inventory management with product variants, batch/serial numbers, expiry-based auto-removal",
-        "Order, shipment & supplier management — almost entirely AI-driven workflows",
-      ],
-      details: {
-        overview: "Dental AI is a comprehensive SaaS platform that transforms dental practice management through end-to-end AI automation. From reading emails and booking appointments to making patient calls and managing inventory — the platform replaces manual tasks with intelligent, autonomous AI workflows powered by the latest voice and language models.",
-        challenges: [
-          "Accurately classifying emails as appointment requests vs. general queries using AI",
-          "Seamlessly syncing appointments across Google Calendar and internal app in real time",
-          "Building a voice AI agent that sounds natural and can handle patient conversations autonomously",
-          "Managing complex inventory with variants, batches, serial numbers, and auto-expiry logic",
-          "Orchestrating multiple AI services (voice, transcription, email, SMS) into one cohesive workflow",
-        ],
-        solutions: [
-          "NLP email parser using LLM to classify intent, extract date/time/doctor preferences from raw email text",
-          "Google Calendar API + internal Supabase DB sync ensuring appointments are reflected everywhere instantly",
-          "Vapi-powered voice AI with ElevenLabs for natural speech synthesis and Deepgram for real-time transcription — AI calls patients, understands responses, and books autonomously",
-          "Twilio integration for outbound/inbound SMS and calls; Brevo for templated email confirmations",
-          "Inventory system with product variants, batch & serial number tracking, expiry-date-based auto-removal, low-stock alerts",
-          "Order & shipment management linked to supplier records — AI handles reorder suggestions and status updates",
-        ],
-        impact: [
-          "90%+ of appointment booking tasks automated end-to-end without staff intervention",
-          "AI voice agent handles patient calls with human-like quality using ElevenLabs + Deepgram",
-          "Zero missed appointments from email — AI parses and acts on every incoming message",
-          "Inventory accuracy improved with auto-expiry, batch tracking, and smart reorder triggers",
-          "Practices report saving 15+ staff-hours per week through AI-driven workflow automation",
-          "Multi-channel patient communication: voice call, SMS, and email — all AI-orchestrated",
-        ],
-        techStack: {
-          ai: ["ElevenLabs (TTS)", "Deepgram (STT)", "Vapi (Voice Agent)", "LLM (Intent Parsing)"],
-          backend: ["Node.js", "Express", "REST APIs"],
-          database: ["Supabase (PostgreSQL)"],
-          communication: ["Twilio (Calls & SMS)", "Brevo (Email)"],
-          integrations: ["Google Calendar API", "Gmail API"],
-          features: ["Inventory Mgmt", "Batch/Serial Numbers", "Auto-Expiry", "Order & Shipment", "Supplier Mgmt"],
-        },
-      },
-    },
-    {
       title: "DigiPay",
       subtitle: "Digital Wallet & Payment Services Platform",
       tags: ["Node.js", "MongoDB", "Braintree", "Stripe", "PayPal", "PhonePe", "UPI"],
@@ -811,7 +863,7 @@ function Projects() {
   return (
     <>
       <section id="projects" className="py-32 px-6 relative overflow-hidden">
-        <Orb color="#6366f1" size={500} top="20%" left="-10%" delay={1} opacity={0.07} />
+        <Orb color="#ec4899" size={500} top="20%" left="-10%" delay={1} opacity={0.07} />
         <div className="max-w-6xl mx-auto" ref={ref}>
           <SectionLabel>03 — Featured Projects</SectionLabel>
           <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-4">
@@ -922,6 +974,26 @@ function Projects() {
               </div>
 
               <div className="p-8 space-y-10">
+                {/* Screenshots */}
+                {selected.images?.length > 0 && (
+                  <div>
+                    <div className="mono text-xs mb-4" style={{ color: selected.accent }}>SCREENSHOTS</div>
+                    <div className="grid sm:grid-cols-2 gap-4">
+                      {selected.images.map((img, i) => (
+                        <div key={i} className="rounded-xl overflow-hidden border border-white/10 bg-white/3">
+                          <img
+                            src={img}
+                            alt={`${selected.title} screenshot ${i + 1}`}
+                            className="w-full h-48 object-cover pointer-events-none select-none"
+                            draggable={false}
+                            onError={(e) => { e.currentTarget.parentElement.style.display = "none"; }}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 {/* Overview */}
                 <div>
                   <div className="mono text-xs mb-3" style={{ color: selected.accent }}>OVERVIEW</div>
@@ -1059,7 +1131,8 @@ function Experience() {
   ];
 
   return (
-    <section id="experience" className="py-32 px-6 relative" style={{ background: "linear-gradient(180deg, #030712 0%, #060618 100%)" }}>
+    <section id="experience" className="py-32 px-6 relative overflow-hidden" style={{ background: "linear-gradient(180deg, #030712 0%, #060618 100%)" }}>
+      <Orb color="#3b82f6" size={450} top="10%" left="-10%" delay={2} opacity={0.07} />
       <div className="max-w-4xl mx-auto" ref={ref}>
         <SectionLabel>04 — Experience</SectionLabel>
         <h2 className="text-4xl md:text-5xl font-black mb-16">
@@ -1070,7 +1143,7 @@ function Experience() {
           {/* Timeline line */}
           <motion.div
             className="absolute left-6 top-0 w-px"
-            style={{ background: "linear-gradient(180deg, #8b5cf6 0%, #06b6d4 100%)", originY: 0 }}
+            style={{ background: "linear-gradient(180deg, #3b82f6 0%, #8b5cf6 100%)", originY: 0 }}
             initial={{ scaleY: 0, height: "100%" }}
             animate={inView ? { scaleY: 1 } : {}}
             transition={{ duration: 1.2, ease: "easeInOut", delay: 0.3 }}
@@ -1124,13 +1197,13 @@ function Contact() {
   const contacts = [
     { icon: "✉", label: "Email", value: "rushabh1245@gmail.com", href: "mailto:rushabh1245@gmail.com" },
     { icon: "in", label: "LinkedIn", value: "/rushabh-savaliya", href: "https://linkedin.com/in/rushabh-savaliya" },
-    { icon: "{}", label: "GitHub", value: "/rushabh-savaliya", href: "https://github.com/rushabh-savaliya" },
+    { icon: "{}", label: "GitHub", value: "/rushabh-savaliya", href: "https://github.com/russsavaliya" },
   ];
 
   return (
     <section id="contact" className="py-32 px-6 relative overflow-hidden">
       <Orb color="#8b5cf6" size={600} top="0%" left="30%" delay={0} opacity={0.07} />
-      <Orb color="#06b6d4" size={400} top="50%" left="60%" delay={3} opacity={0.06} />
+      <Orb color="#22c55e" size={400} top="50%" left="60%" delay={3} opacity={0.06} />
 
       <div className="max-w-4xl mx-auto text-center relative z-10" ref={ref}>
         <motion.div
@@ -1206,7 +1279,7 @@ function Footer() {
         </div>
         <div className="flex gap-6">
           {[
-            { label: "GitHub", href: "https://github.com/rushabh-savaliya" },
+            { label: "GitHub", href: "https://github.com/russsavaliya" },
             { label: "LinkedIn", href: "https://linkedin.com/in/rushabh-savaliya" },
             { label: "Email", href: "mailto:rushabh1245@gmail.com" },
           ].map((s) => (
